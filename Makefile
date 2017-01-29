@@ -3,14 +3,14 @@ CFLAGS = -g -I/usr/include
 
 all: main
 
-main: main.o sio.o
-	$(CC) -o main main.o sio.o
+main: main.o serial.o
+	$(CC) -o main main.o serial.o
 
 main.o: main.c
 	$(CC) -c main.c
 
-sio.o: sio.c
-	$(CC) -c sio.c
+serial.o: serial.c
+	$(CC) -c serial.c
 
 clean:
 	rm -f *~ *.o main

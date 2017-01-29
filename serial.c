@@ -5,6 +5,7 @@
 #include <fcntl.h>
 #include <strings.h>
 #include <string.h>
+#include "serial.h"
 
 int nSerialFd;
 struct termios tioOld;

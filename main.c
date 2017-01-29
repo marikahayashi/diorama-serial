@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <unistd.h>
-#include "sio.h"
+#include "serial.h"
 
 int main(void)
 {
