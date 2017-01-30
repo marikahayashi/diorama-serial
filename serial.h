@@ -1,5 +1,10 @@
-int serial_open(char *psDevname, int nBaudrate, int nDatabit, int nStopbit, int nParity);
-void serial_close(void);
-int serial_putchar(unsigned char uc);
-int serial_putstring(char *pcStr);
-int serial_getchar(unsigned char *puc);
+int serial_open(int nSeriNum, char *psDevname, int nBaudrate, int nDatabit, int nStopbit, int nParity);
+int serial_try_open_all(int nBaudrate, int nDatabit, int nStopbit, int nParity);
+void serial_close(int nSeriNum);
+void serial_close_all(void);
+int serial_putchar(int nSeriNum, unsigned char uc);
+int serial_putstring(int nSeriNum, char *pcStr);
+int serial_getchar(int nSeriNum, unsigned char *puc);
+void serial_stdout_status(void);
+int serial_get_serinum(void);
+int serial_is_open(int nSeriNum);
