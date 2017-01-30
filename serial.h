@@ -1,6 +1,7 @@
+void serial_init(void);
 int serial_open(int nSeriNum, char *psDevname, int nBaudrate, int nDatabit, int nStopbit, int nParity);
 int serial_try_open_all(int nBaudrate, int nDatabit, int nStopbit, int nParity);
-void serial_close(int nSeriNum);
+int serial_close(int nSeriNum);
 void serial_close_all(void);
 int serial_putchar(int nSeriNum, unsigned char uc);
 int serial_putstring(int nSeriNum, char *pcStr);

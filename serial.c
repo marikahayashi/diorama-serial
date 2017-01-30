@@ -11,18 +11,29 @@
 #define SERICLOSE (0)
 #define SERIOPEN (1)
 #define DEVNAMELEN (13)
+#define DEVTRYLEN (10)
+
 static int nSerialFd[SERINUM];
 static int anOpen[SERINUM] = {SERICLOSE, SERICLOSE};
-static char asOpenDevName[SERINUM][DEVNAMELEN] = {"", ""};
+static char asOpenDevName[SERINUM][DEVNAMELEN];
+static int anOpenDev[DEVTRYLEN];
 static struct termios tioOld[SERINUM];
 //static unsigned char *pucRecvbuf;
+
+void serial_init(void) {
+  int i;
+  for (i=0; i<DEVTRYLEN; i++) {
+    anOpenDev[i] = SERICLOSE;
+  }
+}
 
 int serial_open(int nSeriNum, char *psDevname, int nBaudrate, int nDatabit, int nStopbit, int nParity)
 {
   struct termios tioNew;
   int nBR, nDB, nSB, nPty;
     
-  nSerialFd[nSeriNum] = open(psDevname, O_RDWR | O_NOCTTY);
+  //nSerialFd[nSeriNum] = open(psDevname, O_RDWR | O_NOCTTY);
+  nSerialFd[nSeriNum] = open(psDevname, O_RDWR | O_NOCTTY | O_NONBLOCK);
   if (nSerialFd[nSeriNum] < 0) {
     //perror("open");
     return -1;
@@ -115,38 +126,53 @@ int serial_open(int nSeriNum, char *psDevname, int nBaudrate, int nDatabit, int 
 int serial_try_open_all(int nBaudrate, int nDatabit, int nStopbit, int nParity)
 {
   int i,j = 0;
-  char acDevName[10][DEVNAMELEN] = {
-  "/dev/ttyUSB0", "/dev/ttyUSB1",
-  "/dev/ttyUSB2", "/dev/ttyUSB3",
-  "/dev/ttyUSB4", "/dev/ttyUSB5",
-  "/dev/ttyUSB6", "/dev/ttyUSB7",
-  "/dev/ttyUSB8", "/dev/ttyUSB9"};
-
+  char sStr[DEVNAMELEN];
+  char acDevName[DEVTRYLEN][DEVNAMELEN];
+  int ret = -1;
+  
+  for (i=0; i < DEVTRYLEN; i++) {
+    sprintf(sStr, "/dev/ttyUSB%d", i);
+    strcpy(&acDevName[i][0], sStr);
+  }
+  
   //printf("try open %s\n", &acDevName[0][i]);
-  while (j < SERINUM - 1) {
+  i=0;
+  while (j < SERINUM) {
+    //printf("i %d  j%d\n", i, j);
+    while( anOpen[j] == SERIOPEN ) {
+      j++;
+    }
     if( serial_open(j,&acDevName[i][0], nBaudrate, nDatabit, nStopbit, nParity) < 0) {
     } else {
       anOpen[j] = SERIOPEN;
       strncpy(&asOpenDevName[j][0], &acDevName[i][0], DEVNAMELEN);
+      anOpenDev[i] = SERIOPEN;
       j++;
+      ret = 0;
     }
-    i++;
-    if (i > 10) {
-      i = 0;
-    }
+    do {
+      i++;
+      if (i >= 10) {
+	return ret;
+      }
+    } while (anOpenDev[i] == SERIOPEN);
     usleep(10000);
     //printf("try open %s\n", &acDevName[i][0]);
   }
 
-  return 0;
+  return ret;
 }
 
-void serial_close(int nSeriNum)
+int serial_close(int nSeriNum)
 {
+  if ( anOpen[nSeriNum] == SERICLOSE ) {
+    return -1;
+  }
   tcsetattr(nSerialFd[nSeriNum], TCSANOW, &tioOld[nSeriNum]);
   close(nSerialFd[nSeriNum]);
   anOpen[nSeriNum] = SERICLOSE;
   asOpenDevName[nSeriNum][0] = '\0';
+  return 0;
 }
 
 void serial_close_all(void)
