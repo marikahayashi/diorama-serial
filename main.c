@@ -32,6 +32,8 @@ int main(void)
 	if (ucRecv == 'q') {
 	  break;
 	}
+      } else {
+	serial_try_open_all(19200, 8, 1, 0);
       }
     }
     if (ucRecv == 'q') {
