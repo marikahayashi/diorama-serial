@@ -11,6 +11,7 @@ int main(void)
   //disable buffering of printf
   setvbuf(stdout, (char *)NULL, _IONBF, 0);
 
+  serial_init();
   serial_try_open_all(19200, 8, 1, 0);
   serial_stdout_status();
   

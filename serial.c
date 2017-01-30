@@ -14,12 +14,19 @@
 #define DEVTRYLEN (10)
 
 static int nSerialFd[SERINUM];
-static int anOpen[SERINUM] = {SERICLOSE, SERICLOSE};
-static char asOpenDevName[SERINUM][DEVNAMELEN];
-static int anOpenDev[DEVTRYLEN];
+static int anOpen[SERINUM] = {SERICLOSE, SERICLOSE};//status of nSerialFds
+static char asOpenDevName[SERINUM][DEVNAMELEN];//for serial_stdout_status
+static int anOpenDev[DEVTRYLEN];//describes which port is open
 static struct termios tioOld[SERINUM];
 //static unsigned char *pucRecvbuf;
 
+
+/***********************************
+serial_init()
+ initializes constant value
+ Argument:void
+ Return value:void
+************************************/
 void serial_init(void) {
   int i;
   for (i=0; i<DEVTRYLEN; i++) {
@@ -27,6 +34,19 @@ void serial_init(void) {
   }
 }
 
+
+/***********************************
+serial_open()
+ opens one port
+ Argument:
+   nSeriNum (i): index of nSerialFd
+   psDevnam (i): device name ex. "/dev/ttyS0"
+   nBaudrate (i): defalut 19200
+   nDatabit (i): default 8
+   nStopbit (i): defalut 1
+   nParity (i): defalut 0
+ Return value: status
+************************************/
 int serial_open(int nSeriNum, char *psDevname, int nBaudrate, int nDatabit, int nStopbit, int nParity)
 {
   struct termios tioNew;
@@ -123,6 +143,18 @@ int serial_open(int nSeriNum, char *psDevname, int nBaudrate, int nDatabit, int 
   return 0;
 }
 
+
+/***********************************
+serial_try_open_all()
+ tries to open all port. max port qty is SERINUM
+ sets global value anOpen, asOpenDevName, anOpenDev.
+ Argument:
+   nBaudrate (i)
+   nDatabit (i)
+   nStopbit (i)
+   nParity (i)
+ Return value: status
+************************************/
 int serial_try_open_all(int nBaudrate, int nDatabit, int nStopbit, int nParity)
 {
   int i,j = 0;
@@ -163,6 +195,15 @@ int serial_try_open_all(int nBaudrate, int nDatabit, int nStopbit, int nParity)
   return ret;
 }
 
+
+/***********************************
+serial_close()
+ close one port
+ Argument:
+   nSeriNum (i): index of nSerialFd
+ Return value:
+   status. if already port is open, return -1
+ ***********************************/
 int serial_close(int nSeriNum)
 {
   if ( anOpen[nSeriNum] == SERICLOSE ) {
@@ -175,6 +216,13 @@ int serial_close(int nSeriNum)
   return 0;
 }
 
+
+/***********************************
+serial_close_all()
+ close all port
+ Argument:void
+ Return value:void
+ ***********************************/
 void serial_close_all(void)
 {
   int i;
@@ -185,6 +233,15 @@ void serial_close_all(void)
   }
 }
 
+
+/***********************************
+serial_putchar()
+ send a char
+ Argument:
+   nSeriNum (i): index of nSerialFd
+   uc (i): a character to send
+ Return value:status
+ ***********************************/
 int serial_putchar(int nSeriNum, unsigned char uc)
 {
   if (write(nSerialFd[nSeriNum], &uc, 1) != 1) {
@@ -193,6 +250,15 @@ int serial_putchar(int nSeriNum, unsigned char uc)
   return 0;
 }
 
+
+/***********************************
+serial_putstring()
+ send a string
+ Argument:
+   nSeriNum (i): index of nSerialFd
+   pcStr (i): string to send
+ Return value:status
+ ***********************************/
 int serial_putstring(int nSeriNum, char *pcStr)
 {
   if (write(nSerialFd[nSeriNum], pcStr, strlen(pcStr)) != 1) {
@@ -201,6 +267,15 @@ int serial_putstring(int nSeriNum, char *pcStr)
   return 0;
 }
 
+
+/***********************************
+serial_getchar()
+ read a char
+ Argument:
+   nSeriNum (i): index of nSerialFd
+   puc (o): received char
+ Return value:status
+ ***********************************/
 int serial_getchar(int nSeriNum, unsigned char *puc)
 {
   if (read(nSerialFd[nSeriNum], puc, 1) != 1) {
@@ -209,6 +284,12 @@ int serial_getchar(int nSeriNum, unsigned char *puc)
   return 0;
 }
 
+/***********************************
+serial_stdout_status()
+ printf open/close status
+ Argument:void
+ Return value:void
+***********************************/
 void serial_stdout_status(void)
 {
   int i;
@@ -223,11 +304,26 @@ void serial_stdout_status(void)
   printf("\n");
 }
 
+
+/***********************************
+serial_get_serinum()
+ returns max serial port num
+ Argument:void
+ Return value: SERINUM
+***********************************/
 int serial_get_serinum(void)
 {
   return SERINUM;
 }
 
+
+/***********************************
+serial_get_serinum()
+ returns if serial port is open
+ Argument:
+   nSeriNum (i): index of nSerialFd
+ Return value: 0/1 --- close/open
+***********************************/
 int serial_is_open(int nSeriNum)
 {
   return anOpen[nSeriNum];
